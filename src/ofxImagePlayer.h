@@ -15,8 +15,10 @@
 
 
 #define USE_NSIMAGE false /*instead of OF loader*/
+//TODO! ifdef all COCOA STUFF!!
 
-class ofxImagePlayer /*: ofBaseDraws*/{
+
+class ofxImagePlayer /*: ofBaseDraws*/{ //todo!
 
 public:
 
@@ -38,7 +40,7 @@ public:
 
 	void update(float dt);
 	void draw(float x, float y, float w = 0.0f, float h = 0.0f);
-	void drawInfo(float x, float y); //report used memory for this anim, frame index
+	static void drawInfo(float x, float y); //report used memory for this anim, frame index
 
 //	float getHeight();
 //	float getWidth();
@@ -66,9 +68,11 @@ private:
 
 	//ofxThreadedImageLoader loader;
 	ofImage nextFrame;
-	float usedMemory;
+	static map<string,float> ofxImagePlayerUsedMemory; //shared across all instances! beware!
 	//int w, h;
 	string folderPath;
 };
+
+
 
 #endif /* defined(__remoteUI_Sketch__ofxImagePlayer__) */

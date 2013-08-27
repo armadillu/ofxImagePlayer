@@ -9,17 +9,19 @@
 #include "ofxImagePlayer.h"
 #include <Cocoa/Cocoa.h>
 
+map<string,float> ofxImagePlayer::ofxImagePlayerUsedMemory; //static global to hold all 
+
 ofxImagePlayer::ofxImagePlayer(){
 	loaded = false;
 	playing = false;
 	loop = false;
 	tex = NULL;
-	usedMemory = 0;
 }
 
 bool ofxImagePlayer::setup(string folder, bool preloaded){
 
 	folderPath = folder;
+	ofxImagePlayerUsedMemory[folderPath] = 0; 
 	preload = preloaded;
     ofDirectory dir;
     int nFiles = dir.listDir(folder);
@@ -37,12 +39,12 @@ bool ofxImagePlayer::setup(string folder, bool preloaded){
 		for(int i = 0; i < filenames.size(); i++){
 			ofTexture *t = loadImg(filenames[i], USE_NSIMAGE);
 			textures.push_back(t);
-			usedMemory += (((t->getTextureData().glTypeInternal == GL_RGBA ) ? 4 : 3) * t->getWidth() * t->getHeight()) / (1024.0f * 1024.0);
+			ofxImagePlayerUsedMemory[folderPath] += (((t->getTextureData().glTypeInternal == GL_RGBA ) ? 4 : 3) * t->getWidth() * t->getHeight()) / (1024.0f * 1024.0);
 
 		}
 	}else{
 		tex = loadImg(filenames[playIndex], USE_NSIMAGE);
-		usedMemory = (((tex->getTextureData().glTypeInternal == GL_RGBA ) ? 4 : 3) * tex->getWidth() * tex->getHeight()) / (1024.0f * 1024.0);
+		ofxImagePlayerUsedMemory[folderPath] = (((tex->getTextureData().glTypeInternal == GL_RGBA ) ? 4 : 3) * tex->getWidth() * tex->getHeight()) / (1024.0f * 1024.0);
 	}
 }
 
@@ -128,7 +130,16 @@ void ofxImagePlayer::draw(float x, float y, float w, float h){
 }
 
 void ofxImagePlayer::drawInfo(float x, float y){
-	char aux[128];
-	sprintf(aux, "%s: %d/%d (%0.1f Mb used)", folderPath.c_str(), playIndex, (int)filenames.size(), usedMemory );
+	string aux;
+	float total = 0;
+	for( map<string, float>::iterator ii = ofxImagePlayerUsedMemory.begin(); ii != ofxImagePlayerUsedMemory.end(); ++ii ){
+		float mem = (*ii).second;
+		string path = (*ii).first;
+		string line = path + " " + ofToString(mem, 2) + "Mb used\n";
+		aux += line;
+		total += mem;
+	}
+	aux += "---------------------------\n";
+	aux += "total mem: " + ofToString(total, 2) + "Mb";
 	ofDrawBitmapStringHighlight(aux, x, y);
 }
